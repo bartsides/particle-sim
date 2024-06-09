@@ -1,26 +1,22 @@
 package drawer
 
 import (
-	"image/color"
 	"math"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 var Width int = 600
 var Height int = 400
+var sandMaxStack int = 2	// Must be 2 or greater
 
-var (
-	backgroundColor = color.RGBA{0xfa, 0xf8, 0xef, 0xff}
-	outlineColor     = color.RGBA{0xbb, 0xad, 0xa0, 0xff}
-	sandColor		= color.RGBA{237, 188, 121, 255}
-	waterColor		= color.RGBA{ 30, 129, 176, 255}
-	drawWidth		= 3
+const (
+	pixelSize = 4 // enlarge pixels for 16-bit feel
 )
 
 type Canvas struct {
 	input		*Input
-	image		*ebiten.Image
 	outlines	[]Pos // TODO: Convert outlines to use hash
 	sand		[]Pos
 	water		[]Pos
@@ -34,112 +30,174 @@ func New() (*Canvas, error) {
 	return c, nil
 }
 
+func (c *Canvas) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return Width, Height
+}
+
 func (c *Canvas) Draw(screen *ebiten.Image) {
-	if c.image == nil {
-		c.image = ebiten.NewImage(Width, Height)
-	}
 	screen.Fill(backgroundColor)
-	for _, outline := range c.outlines {
-		screen.Set(outline.x, outline.y, outline.color)
-	}
 	for _, sand := range c.sand {
-		screen.Set(sand.x, sand.y, sand.color)
+		drawPixel(screen, sand)
 	}
 	for _, water := range c.water {
-		screen.Set(water.x, water.y, water.color)
+		drawPixel(screen, water)
+	}
+	for _, outline := range c.outlines {
+		drawPixel(screen, outline)
+	}
+}
+
+func drawPixel(screen *ebiten.Image, element Pos) {
+	sqr := generateSquare(ToPos(element.x), ToPos(element.y), pixelSize)
+	for _, pos := range sqr {
+		screen.Set(pos.x, pos.y, element.color)
 	}
 }
 
 func (c *Canvas) Update() error {
+	processInputs(c)
+	processParticles(c)
+	return nil
+}
+
+func processInputs(c *Canvas) {
 	c.input.Update()
 	if c.input.mouseState == mouseStateLeftClick {
 		if c.input.mode == inputModeOutline {
 			// TODO: Remove sand or water at position when adding outline?
 			// Insert outline between prev position and current
-			startX := float64(c.input.mousePrevPosX)
-			startY := float64(c.input.mousePrevPosY)
-			// Ensure will step at least once
-			steps := max(abs(c.input.mousePosX - c.input.mousePrevPosX), abs(c.input.mousePosY - c.input.mousePrevPosY), 1)
-			stepX := (float64(c.input.mousePosX) - startX) / float64(steps)
-			stepY := (float64(c.input.mousePosY) - startY) / float64(steps)
-			
+			steps, start, stepX, stepY := getSteps(*c.input)
 			for step := 0; step < steps; step++ {
-				x := int(math.Round(startX + float64(step)*stepX))
-				y := int(math.Round(startY + float64(step)*stepY))
-				rect := generateRect(x, y, drawWidth)
-				for _, pos := range rect {
-					if !Contains(c.outlines, pos.x, pos.y) {
-						c.outlines = append(c.outlines, Pos{ x: pos.x, y: pos.y, color: outlineColor })
-					}
+				pos := getNextStep(step, start, stepX, stepY)
+				if !Contains(c.outlines, pos) {
+					c.outlines = append(c.outlines, Pos{ x: pos.x, y: pos.y, color: outlineColor })
 				}
 			}
 		} else if c.input.mode == inputModeSand {
-			// Insert sand
-			rect := generateRect(c.input.mousePosX, c.input.mousePosY, drawWidth)
-			for _, pos := range rect {
-				if !Contains(c.outlines, pos.x, pos.y) && !Contains(c.sand, pos.x, pos.y) {
+			// Insert sand between prev position and current
+			steps, start, stepX, stepY := getSteps(*c.input)
+			for step := 0; step < steps; step++ {
+				pos := getNextStep(step, start, stepX, stepY)
+				if !Contains(c.outlines, pos) && !Contains(c.sand, pos) {
 					c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: sandColor })
 				}
 			}
 		} else if c.input.mode == inputModeWater {
-			// Insert water
-			rect := generateRect(c.input.mousePosX, c.input.mousePosY, drawWidth)
-			for _, pos := range rect {
-				if !Contains(c.outlines, pos.x, pos.y) && !Contains(c.water, pos.x, pos.y) {
+			// Insert water between prev position and current
+			steps, start, stepX, stepY := getSteps(*c.input)
+			for step := 0; step < steps; step++ {
+				pos := getNextStep(step, start, stepX, stepY)
+				if !Contains(c.outlines, pos) && !Contains(c.water, pos) {
 					c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: waterColor })
 				}
 			}
 		}
 	}
-	// TODO: Process particles
-	return nil
 }
 
-func (c *Canvas) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return Width, Height
-}
-
-func generateRect(x, y, width int) []Pos {
-	// Centered on x, y
-	res := []Pos{{x: x, y: y}}
-
-	for i := 1; i < width; i++ {
-		left := x-i;
-		right := x+i;
-		top := y-i;
-		bottom := y+i;
-
-		res = fillLine(res, left, top, right, top)
-		res = fillLine(res, right, top, right, bottom)
-		res = fillLine(res, right, bottom, left, bottom)
-		res = fillLine(res, left, bottom, left, top)
+func getNextStep(step int, start Pos, stepX, stepY float64) Pos {
+	return Pos {
+		x: int(math.Round(float64(start.x) + float64(step)*stepX)),
+		y: int(math.Round(float64(start.y) + float64(step)*stepY)),
 	}
-
-	return res;
 }
 
-func fillLine(res []Pos, x1, y1, x2, y2 int) []Pos {
-	// Only handles one direction
-	if x1 == x2 {
-		for y := min(y1, y2); y <= max(y1, y2); y++ {
-			if (!Contains(res, x1, y)) {
-				res = append(res, Pos{ x: x1, y: y })
-			}
-		}
-	} else if y1 == y2 {
-		for x := min(x1, x2); x <= max(x1, x2); x++ {
-			if (!Contains(res, x, y1)) {
-				res = append(res, Pos{ x: x, y: y1 })
-			}
-		}
+func getSteps(input Input) (steps int, start Pos, stepX, stepY float64) {
+	start = Pos{
+		x: input.mousePrevGridPosX,
+		y: input.mousePrevGridPosY,
 	}
+	// Ensure will step at least once
+	steps = max(
+		abs(input.mouseGridPosX - input.mousePrevGridPosX), 
+		abs(input.mouseGridPosY - input.mousePrevGridPosY),
+		1,
+	)
+	stepX = (float64(input.mouseGridPosX) - float64(start.x)) / float64(steps)
+	stepY = (float64(input.mouseGridPosY) - float64(start.y)) / float64(steps)
+	return steps, start, stepX, stepY
+}
+
+func processParticles(c *Canvas) {
+	processSand(c)
 	
-	return res
+	// TODO: Sand can push up water. Can't stack any high without trying to topple over either side
 }
 
-func abs(val int) int {
-	if val < 0 {
-		return -val
+func processSand(c *Canvas) {
+	for i, sand := range c.sand {
+		down := Pos{ x: sand.x, y: sand.y + 1 }
+		canGoDown := sandCanMoveTo(c, down)
+		if canGoDown {
+			c.sand[i].y = down.y
+			continue
+		}
+
+		// Sand can only stack sandMaxStack tall. If taller, topple to a random or only available side.
+		left := Pos{ x: sand.x - 1, y: sand.y }
+		right := Pos{ x: sand.x + 1, y: sand.y }
+		canGoLeft := sandCanMoveTo(c, left)
+		canGoRight := sandCanMoveTo(c, right)
+		if !canGoLeft && !canGoRight {
+			continue
+		}
+
+		// Check if stacked higher than max stack
+		stackedToMax := false
+		for j := 1; j <= sandMaxStack; j++ {
+			stackedToMax = Contains(c.sand, Pos{ x: sand.x, y: sand.y + j })
+			if !stackedToMax {
+				break
+			}
+		}
+		if !stackedToMax {
+			continue
+		}
+
+		if canGoLeft {
+			for j := 1; j <= sandMaxStack; j++ {
+				canGoLeft = sandCanMoveTo(c, Pos{ x: left.x, y: left.y + j })
+				if !canGoLeft {
+					break
+				}
+			}
+		}
+
+		if canGoRight {
+			for j := 1; j <= sandMaxStack; j++ {
+				canGoRight = sandCanMoveTo(c, Pos{ x: right.x, y: right.y + j })
+				if !canGoRight {
+					break
+				}
+			}
+		}
+
+		if !canGoLeft && !canGoRight {
+			continue
+		}
+
+		var fallingLeft bool
+		if canGoLeft && !canGoRight {
+			fallingLeft = true
+		} else if !canGoLeft && canGoRight {
+			fallingLeft = false
+		} else {
+			fallingLeft = rand.Intn(2) == 1
+		}
+
+		if fallingLeft {
+			c.sand[i].x = left.x
+		} else {
+			c.sand[i].x = right.x
+		}
 	}
-	return val
+}
+
+func sandCanMoveTo(c *Canvas, pos Pos) bool {
+	// x, y within bounds
+	// no outline or sand there already
+	return 	pos.x >= 0 && pos.x < (Width/pixelSize) &&
+			pos.y >= 0 && pos.y < (Height/pixelSize) &&
+			!Contains(c.outlines, pos) &&
+			!Contains(c.sand, pos)
 }
