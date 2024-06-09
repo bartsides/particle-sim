@@ -10,13 +10,22 @@ type Pos struct {
 	color 	color.Color
 }
 
-func Contains(values []Pos, pos Pos) bool {
+func ContainsPos(values []Pos, pos Pos) bool {
 	for _, val := range values {
 		if val.x == pos.x && val.y == pos.y {
 			return true
 		}
 	}
 	return false
+}
+
+func RemovePos(values []Pos, pos Pos) []Pos {
+	for i, val := range values {
+		if val.x == pos.x && val.y == pos.y {
+			return append(values[:i], values[i+1:]...)
+		}
+	}
+	return values
 }
 
 func ToGrid(pos int) int {

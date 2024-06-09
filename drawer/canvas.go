@@ -2,14 +2,15 @@ package drawer
 
 import (
 	"math"
-	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var Width int = 600
-var Height int = 400
-var sandMaxStack int = 2	// Must be 2 or greater
+var (
+	Width int 	= 600
+	Height int 	= 400
+	sandMaxStack int 	= 2
+)
 
 const (
 	pixelSize = 4 // enlarge pixels for 16-bit feel
@@ -36,11 +37,11 @@ func (c *Canvas) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHei
 
 func (c *Canvas) Draw(screen *ebiten.Image) {
 	screen.Fill(backgroundColor)
-	for _, sand := range c.sand {
-		drawPixel(screen, sand)
-	}
 	for _, water := range c.water {
 		drawPixel(screen, water)
+	}
+	for _, sand := range c.sand {
+		drawPixel(screen, sand)
 	}
 	for _, outline := range c.outlines {
 		drawPixel(screen, outline)
@@ -69,7 +70,7 @@ func processInputs(c *Canvas) {
 			steps, start, stepX, stepY := getSteps(*c.input)
 			for step := 0; step < steps; step++ {
 				pos := getNextStep(step, start, stepX, stepY)
-				if !Contains(c.outlines, pos) {
+				if !ContainsPos(c.outlines, pos) {
 					c.outlines = append(c.outlines, Pos{ x: pos.x, y: pos.y, color: outlineColor })
 				}
 			}
@@ -78,7 +79,7 @@ func processInputs(c *Canvas) {
 			steps, start, stepX, stepY := getSteps(*c.input)
 			for step := 0; step < steps; step++ {
 				pos := getNextStep(step, start, stepX, stepY)
-				if !Contains(c.outlines, pos) && !Contains(c.sand, pos) {
+				if !ContainsPos(c.outlines, pos) && !ContainsPos(c.sand, pos) {
 					c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: sandColor })
 				}
 			}
@@ -87,11 +88,14 @@ func processInputs(c *Canvas) {
 			steps, start, stepX, stepY := getSteps(*c.input)
 			for step := 0; step < steps; step++ {
 				pos := getNextStep(step, start, stepX, stepY)
-				if !Contains(c.outlines, pos) && !Contains(c.water, pos) {
+				if !ContainsPos(c.outlines, pos) && !ContainsPos(c.water, pos) {
 					c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: waterColor })
 				}
 			}
 		}
+	} else if c.input.mouseState == mouseStateRightClick {
+		pos := Pos{ x: c.input.mouseGridPosX, y: c.input.mouseGridPosY }
+		c.outlines = RemovePos(c.outlines, pos)
 	}
 }
 
@@ -120,84 +124,5 @@ func getSteps(input Input) (steps int, start Pos, stepX, stepY float64) {
 
 func processParticles(c *Canvas) {
 	processSand(c)
-	
-	// TODO: Sand can push up water. Can't stack any high without trying to topple over either side
-}
-
-func processSand(c *Canvas) {
-	for i, sand := range c.sand {
-		down := Pos{ x: sand.x, y: sand.y + 1 }
-		canGoDown := sandCanMoveTo(c, down)
-		if canGoDown {
-			c.sand[i].y = down.y
-			continue
-		}
-
-		// Sand can only stack sandMaxStack tall. If taller, topple to a random or only available side.
-		left := Pos{ x: sand.x - 1, y: sand.y }
-		right := Pos{ x: sand.x + 1, y: sand.y }
-		canGoLeft := sandCanMoveTo(c, left)
-		canGoRight := sandCanMoveTo(c, right)
-		if !canGoLeft && !canGoRight {
-			continue
-		}
-
-		// Check if stacked higher than max stack
-		stackedToMax := false
-		for j := 1; j <= sandMaxStack; j++ {
-			stackedToMax = Contains(c.sand, Pos{ x: sand.x, y: sand.y + j })
-			if !stackedToMax {
-				break
-			}
-		}
-		if !stackedToMax {
-			continue
-		}
-
-		if canGoLeft {
-			for j := 1; j <= sandMaxStack; j++ {
-				canGoLeft = sandCanMoveTo(c, Pos{ x: left.x, y: left.y + j })
-				if !canGoLeft {
-					break
-				}
-			}
-		}
-
-		if canGoRight {
-			for j := 1; j <= sandMaxStack; j++ {
-				canGoRight = sandCanMoveTo(c, Pos{ x: right.x, y: right.y + j })
-				if !canGoRight {
-					break
-				}
-			}
-		}
-
-		if !canGoLeft && !canGoRight {
-			continue
-		}
-
-		var fallingLeft bool
-		if canGoLeft && !canGoRight {
-			fallingLeft = true
-		} else if !canGoLeft && canGoRight {
-			fallingLeft = false
-		} else {
-			fallingLeft = rand.Intn(2) == 1
-		}
-
-		if fallingLeft {
-			c.sand[i].x = left.x
-		} else {
-			c.sand[i].x = right.x
-		}
-	}
-}
-
-func sandCanMoveTo(c *Canvas, pos Pos) bool {
-	// x, y within bounds
-	// no outline or sand there already
-	return 	pos.x >= 0 && pos.x < (Width/pixelSize) &&
-			pos.y >= 0 && pos.y < (Height/pixelSize) &&
-			!Contains(c.outlines, pos) &&
-			!Contains(c.sand, pos)
+	processWater(c)
 }
