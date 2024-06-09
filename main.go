@@ -17,18 +17,23 @@ package main
 import (
 	"log"
 
+	"github.com/bartsides/physics-drawer/drawer"
 	"github.com/hajimehoshi/ebiten/v2"
-	twenty48 "github.com/hajimehoshi/ebiten/v2/examples/2048/2048"
 )
 
+/*
+TODO: Dynamically change canvas size on window resize?
+
+*/
+
 func main() {
-	game, err := twenty48.NewGame()
+	canvas, err := drawer.New()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ebiten.SetWindowSize(twenty48.ScreenWidth, twenty48.ScreenHeight)
-	ebiten.SetWindowTitle("2048 (Ebitengine Demo)")
-	if err := ebiten.RunGame(game); err != nil {
+	ebiten.SetWindowSize(drawer.Width, drawer.Height)
+	ebiten.SetWindowTitle("Drawing with Particles")
+	if err := ebiten.RunGame(canvas); err != nil {
 		log.Fatal(err)
 	}
 }
