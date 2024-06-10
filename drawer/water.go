@@ -12,7 +12,19 @@ func waterCanMoveTo(c *Canvas, pos Pos) bool {
 			!ContainsPos(c.water, pos)
 }
 
+func handleWaterInput(c *Canvas) {
+	// Insert water between prev position and current
+	steps, start, stepX, stepY := getSteps(*c.input)
+	for step := 0; step < steps; step++ {
+		pos := getNextStep(step, start, stepX, stepY)
+		if !ContainsPos(c.outlines, pos) && !ContainsPos(c.water, pos) {
+			c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: getRandomColor(waterColors) })
+		}
+	}
+}
+
 func processWater(c *Canvas) {
+	removal := []Pos{}
 	for i, water := range c.water {
 		if ContainsPos(c.sand, water) || ContainsPos(c.outlines, water) {
 			// Sand or outline has displaced water
@@ -21,6 +33,10 @@ func processWater(c *Canvas) {
 		}
 
 		down := Pos{ x: water.x, y: water.y + 1 }
+		if c.mode == canvasBottomless && down.y >= GridHeight {
+			removal = append(removal, water)
+			continue
+		}
 		canGoDown := waterCanMoveTo(c, down)
 		if canGoDown {
 			c.water[i].y = down.y
@@ -45,15 +61,15 @@ func processWater(c *Canvas) {
 			canDropLeft = waterCanMoveTo(c, Pos{ x: left.x, y: left.y + 1 })
 			if !canDropLeft {
 				// Continue searching until left is blocked or left down is open
-				for i := left.x; i >= 0; i-- {
-					if !waterCanMoveTo(c, Pos{ x: i, y: left.y }) {
+				for j := left.x; j >= 0; j-- {
+					if !waterCanMoveTo(c, Pos{ x: j, y: left.y }) {
 						// Left is blocked
 						break
 					}
-					canDropLeft = waterCanMoveTo(c, Pos{ x: i, y: left.y + 1 })
+					canDropLeft = waterCanMoveTo(c, Pos{ x: j, y: left.y + 1 })
 					if canDropLeft {
 						// Can drop left
-						stepsLeft = i
+						stepsLeft = j
 						break
 					}
 				}
@@ -63,15 +79,15 @@ func processWater(c *Canvas) {
 		if canGoRight {
 			canDropRight = waterCanMoveTo(c, Pos{ x: right.x, y: right.y + 1 })
 			if !canDropRight {
-				for i := right.x; i < GridWidth; i++ {
-					if !waterCanMoveTo(c, Pos{ x: i, y: right.y }) {
+				for j := right.x; j < GridWidth; j++ {
+					if !waterCanMoveTo(c, Pos{ x: j, y: right.y }) {
 						// Right is blocked
 						break
 					}
-					canDropRight = waterCanMoveTo(c, Pos{ x: i, y: right.y + 1 })
+					canDropRight = waterCanMoveTo(c, Pos{ x: j, y: right.y + 1 })
 					if canDropRight {
 						// Can drop right
-						stepsRight = i
+						stepsRight = j
 						break
 					}
 				}
@@ -100,5 +116,9 @@ func processWater(c *Canvas) {
 		} else {
 			c.water[i].x = right.x
 		}
+	}
+
+	for _, water := range removal {
+		c.water = RemovePos(c.water, water)
 	}
 }

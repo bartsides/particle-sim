@@ -18,6 +18,7 @@ var (
 		{ 60, 120, 176, 255},
 		{ 40, 120, 215, 255},
 	}
+	spewerColor		= color.RGBA{100, 100, 100, 255}
 )
 
 func getRandomColor(colors []color.RGBA) color.RGBA {

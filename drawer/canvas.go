@@ -18,16 +18,25 @@ var (
 	sandMaxStack int = 2
 )
 
+type canvasMode int
+const (
+	canvasWithWalls canvasMode = iota
+	canvasBottomless
+)
+
 type Canvas struct {
-	input		*Input
-	outlines	[]Pos // TODO: Convert outlines to use hash
+	input		*input
+	mode		canvasMode
+	outlines	[]Pos // TODO: Convert outlines to use hash?
 	sand		[]Pos
 	water		[]Pos
+	spewers		[]spewer
 }
 
 func New() (*Canvas, error) {
 	c := &Canvas{
 		input: NewInput(),
+		mode: canvasBottomless,
 	}
 	return c, nil
 }
@@ -47,6 +56,9 @@ func (c *Canvas) Draw(screen *ebiten.Image) {
 	for _, outline := range c.outlines {
 		drawPixel(screen, outline)
 	}
+	for _, spewer := range c.spewers {
+		spewer.draw(screen)
+	}
 }
 
 func drawPixel(screen *ebiten.Image, element Pos) {
@@ -59,44 +71,28 @@ func drawPixel(screen *ebiten.Image, element Pos) {
 func (c *Canvas) Update() error {
 	processInputs(c)
 	processParticles(c)
+	processSpewers(c)
 	return nil
 }
 
 func processInputs(c *Canvas) {
 	c.input.Update()
 	if c.input.mouseState == mouseStateLeftClick {
-		if c.input.mode == inputModeOutline {
-			// TODO: Remove sand or water at position when adding outline?
-			// Insert outline between prev position and current
-			steps, start, stepX, stepY := getSteps(*c.input)
-			for step := 0; step < steps; step++ {
-				pos := getNextStep(step, start, stepX, stepY)
-				if !ContainsPos(c.outlines, pos) {
-					c.outlines = append(c.outlines, Pos{ x: pos.x, y: pos.y, color: outlineColor })
-				}
-			}
-		} else if c.input.mode == inputModeSand {
-			// Insert sand between prev position and current
-			steps, start, stepX, stepY := getSteps(*c.input)
-			for step := 0; step < steps; step++ {
-				pos := getNextStep(step, start, stepX, stepY)
-				if !ContainsPos(c.outlines, pos) && !ContainsPos(c.sand, pos) {
-					c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: getRandomColor(sandColors) })
-				}
-			}
-		} else if c.input.mode == inputModeWater {
-			// Insert water between prev position and current
-			steps, start, stepX, stepY := getSteps(*c.input)
-			for step := 0; step < steps; step++ {
-				pos := getNextStep(step, start, stepX, stepY)
-				if !ContainsPos(c.outlines, pos) && !ContainsPos(c.water, pos) {
-					c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: getRandomColor(waterColors) })
-				}
-			}
+		switch c.input.mode {
+		case inputModeOutline:
+			handleOutlineInput(c)
+		case inputModeSand:
+			handleSandInput(c)
+		case inputModeWater:
+			handleWaterInput(c)
+		case inputModeWaterSpewer:
+			handleSpewerInput(c, spewerWaterType)
+		case inputModeSandSpewer:
+			handleSpewerInput(c, spewerSandType)
 		}
 	} else if c.input.mouseState == mouseStateRightClick {
-		pos := Pos{ x: c.input.mouseGridPosX, y: c.input.mouseGridPosY }
-		c.outlines = RemovePos(c.outlines, pos)
+		handleRemoveOutline(c)
+		handleRemoveSpewer(c)
 	}
 }
 
@@ -107,16 +103,16 @@ func getNextStep(step int, start Pos, stepX, stepY float64) Pos {
 	}
 }
 
-func getSteps(input Input) (steps int, start Pos, stepX, stepY float64) {
+func getSteps(input input) (steps int, start Pos, stepX, stepY float64) {
 	start = Pos{
 		x: input.mousePrevGridPosX,
 		y: input.mousePrevGridPosY,
 	}
-	// Ensure will step at least once
+	
 	steps = max(
 		abs(input.mouseGridPosX - input.mousePrevGridPosX), 
 		abs(input.mouseGridPosY - input.mousePrevGridPosY),
-		1,
+		1,  // Ensure will step at least once
 	)
 	stepX = (float64(input.mouseGridPosX) - float64(start.x)) / float64(steps)
 	stepY = (float64(input.mouseGridPosY) - float64(start.y)) / float64(steps)

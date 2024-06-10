@@ -11,9 +11,25 @@ func sandCanMoveTo(c *Canvas, pos Pos) bool {
 			!ContainsPos(c.sand, pos)
 }
 
+func handleSandInput(c *Canvas) {
+	// Insert sand between prev position and current
+	steps, start, stepX, stepY := getSteps(*c.input)
+	for step := 0; step < steps; step++ {
+		pos := getNextStep(step, start, stepX, stepY)
+		if !ContainsPos(c.outlines, pos) && !ContainsPos(c.sand, pos) {
+			c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: getRandomColor(sandColors) })
+		}
+	}
+}
+
 func processSand(c *Canvas) {
+	removal := []Pos{}
 	for i, sand := range c.sand {
 		down := Pos{ x: sand.x, y: sand.y + 1 }
+		if c.mode == canvasBottomless && down.y >= GridHeight {
+			removal = append(removal, sand)
+			continue
+		}
 		canGoDown := sandCanMoveTo(c, down)
 		if canGoDown {
 			c.sand[i].y = down.y
@@ -77,5 +93,9 @@ func processSand(c *Canvas) {
 		} else {
 			c.sand[i].x = right.x
 		}
+	}
+
+	for _, sand := range removal {
+		c.sand = RemovePos(c.sand, sand)
 	}
 }

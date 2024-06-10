@@ -16,10 +16,12 @@ const (
 	inputModeOutline inputMode = iota
 	inputModeSand
 	inputModeWater
+	inputModeWaterSpewer
+	inputModeSandSpewer
 )
 
-// Input represents the current key states.
-type Input struct {
+// input represents the current key states.
+type input struct {
 	mouseState			mouseState
 	mousePosX			int
 	mousePosY			int
@@ -33,12 +35,12 @@ type Input struct {
 }
 
 // NewInput generates a new Input object.
-func NewInput() *Input {
-	return &Input{}
+func NewInput() *input {
+	return &input{}
 }
 
 // Update updates the current input states.
-func (i *Input) Update() {
+func (i *input) Update() {
 	x, y := ebiten.CursorPosition()
 	// Set previous positions
 	i.mousePrevPosX = i.mousePosX
@@ -66,5 +68,9 @@ func (i *Input) Update() {
 		i.mode = inputModeSand
 	} else if ebiten.IsKeyPressed(ebiten.Key3) {
 		i.mode = inputModeWater
+	} else if ebiten.IsKeyPressed(ebiten.Key4) {
+		i.mode = inputModeWaterSpewer
+	} else if ebiten.IsKeyPressed(ebiten.Key5) {
+		i.mode = inputModeSandSpewer
 	}
 }
