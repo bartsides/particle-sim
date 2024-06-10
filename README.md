@@ -4,4 +4,4 @@ Little particle sim written in Go
 
 ## Run
 
-Run `go run main.go`
+`go run .`
