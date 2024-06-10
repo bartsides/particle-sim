@@ -1,4 +1,4 @@
-name: Publish
+name: Publish GitHub Page
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Build WebAssembly
         run: |
-          go build -ldflags="-s -w" -tags particle -o docs/html/main.wasm .
+          go build -o docs/html/main.wasm .
 
       - name: Deploy to GitHub Pages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -41,3 +41,4 @@ jobs:
           build_dir: docs/html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
