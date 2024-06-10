@@ -81,7 +81,7 @@ func processInputs(c *Canvas) {
 			for step := 0; step < steps; step++ {
 				pos := getNextStep(step, start, stepX, stepY)
 				if !ContainsPos(c.outlines, pos) && !ContainsPos(c.sand, pos) {
-					c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: sandColor })
+					c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: getRandomColor(sandColors) })
 				}
 			}
 		} else if c.input.mode == inputModeWater {
@@ -90,7 +90,7 @@ func processInputs(c *Canvas) {
 			for step := 0; step < steps; step++ {
 				pos := getNextStep(step, start, stepX, stepY)
 				if !ContainsPos(c.outlines, pos) && !ContainsPos(c.water, pos) {
-					c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: waterColor })
+					c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: getRandomColor(waterColors) })
 				}
 			}
 		}
