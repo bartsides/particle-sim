@@ -14,7 +14,12 @@ func waterCanMoveTo(c *Canvas, pos Pos) bool {
 
 func processWater(c *Canvas) {
 	for i, water := range c.water {
-		// TODO: Check if water and sand share space and move up if true
+		if ContainsPos(c.sand, water) || ContainsPos(c.outlines, water) {
+			// Sand or outline has displaced water
+			c.water[i].y = max(0, water.y - 1)
+			continue
+		}
+
 		down := Pos{ x: water.x, y: water.y + 1 }
 		canGoDown := waterCanMoveTo(c, down)
 		if canGoDown {
