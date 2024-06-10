@@ -1,4 +1,4 @@
-package drawer
+package particle
 
 import "github.com/hajimehoshi/ebiten/v2"
 

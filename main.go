@@ -1,23 +1,9 @@
-// Copyright 2016 The Ebiten Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package main
 
 import (
 	"log"
 
-	"github.com/bartsides/physics-drawer/drawer"
+	"github.com/bartsides/particle-sim/particle"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -27,12 +13,12 @@ TODO: Dynamically change canvas size on window resize?
 */
 
 func main() {
-	canvas, err := drawer.New()
+	canvas, err := particle.New()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ebiten.SetWindowSize(drawer.Width, drawer.Height)
-	ebiten.SetWindowTitle("Drawing with Particles")
+	ebiten.SetWindowSize(particle.Width, particle.Height)
+	ebiten.SetWindowTitle("Particle Sim")
 	if err := ebiten.RunGame(canvas); err != nil {
 		log.Fatal(err)
 	}

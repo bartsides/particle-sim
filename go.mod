@@ -1,4 +1,4 @@
-module github.com/bartsides/physics-drawer
+module github.com/bartsides/particle-sim
 
 go 1.22.4
 

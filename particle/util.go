@@ -1,4 +1,4 @@
-package drawer
+package particle
 
 func abs(val int) int {
 	if val < 0 {

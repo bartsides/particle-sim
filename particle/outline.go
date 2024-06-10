@@ -1,4 +1,4 @@
-package drawer
+package particle
 
 func handleOutlineInput(c *Canvas) {
 	// TODO: Remove sand or water at position when adding outline?
