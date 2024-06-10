@@ -8,7 +8,7 @@ func waterCanMoveTo(c *Canvas, pos Pos) bool {
 	return 	pos.x >= 0 && pos.x < (Width/pixelSize) &&
 			pos.y >= 0 && pos.y < (Height/pixelSize) &&
 			!ContainsPos(c.outlines, pos) &&
-			!ContainsPos(c.water, pos) &&
+			!ContainsPos(c.sand, pos) &&
 			!ContainsPos(c.water, pos)
 }
 
@@ -28,11 +28,6 @@ func processWater(c *Canvas) {
 		canGoRight := waterCanMoveTo(c, right)
 		if !canGoLeft && !canGoRight {
 			continue
-		}
-
-		// If not on top of water, stop moving
-		if !ContainsPos(c.water, down) {
-			continue;
 		}
 
 		var fallingLeft bool
