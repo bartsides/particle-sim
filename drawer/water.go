@@ -30,10 +30,61 @@ func processWater(c *Canvas) {
 			continue
 		}
 
+		// Check if able to drop either left or right and nudge towards that direction
+		canDropLeft := false
+		canDropRight := false
+		stepsLeft := 1
+		stepsRight := 1
+
+		if canGoLeft {
+			canDropLeft = waterCanMoveTo(c, Pos{ x: left.x, y: left.y + 1 })
+			if !canDropLeft {
+				// Continue searching until left is blocked or left down is open
+				for i := left.x; i >= 0; i-- {
+					if !waterCanMoveTo(c, Pos{ x: i, y: left.y }) {
+						// Left is blocked
+						break
+					}
+					canDropLeft = waterCanMoveTo(c, Pos{ x: i, y: left.y + 1 })
+					if canDropLeft {
+						// Can drop left
+						stepsLeft = i
+						break
+					}
+				}
+			}
+		}
+
+		if canGoRight {
+			canDropRight = waterCanMoveTo(c, Pos{ x: right.x, y: right.y + 1 })
+			if !canDropRight {
+				for i := right.x; i < Width/pixelSize; i++ {
+					if !waterCanMoveTo(c, Pos{ x: i, y: right.y }) {
+						// Right is blocked
+						break
+					}
+					canDropRight = waterCanMoveTo(c, Pos{ x: i, y: right.y + 1 })
+					if canDropRight {
+						// Can drop right
+						stepsRight = i
+						break
+					}
+				}
+			}
+		}
+
+		if !canDropLeft && !canDropRight {
+			continue;
+		}
+
 		var fallingLeft bool
-		if canGoLeft && !canGoRight {
+		if canDropLeft && !canDropRight {
 			fallingLeft = true
-		} else if !canGoLeft && canGoRight {
+		} else if !canDropLeft && canDropRight {
+			fallingLeft = false
+		} else if stepsLeft < stepsRight {
+			fallingLeft = true
+		} else if stepsRight > stepsLeft {
 			fallingLeft = false
 		} else {
 			fallingLeft = rand.Intn(2) == 1
