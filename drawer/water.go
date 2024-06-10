@@ -5,8 +5,8 @@ import (
 )
 
 func waterCanMoveTo(c *Canvas, pos Pos) bool {
-	return 	pos.x >= 0 && pos.x < (Width/pixelSize) &&
-			pos.y >= 0 && pos.y < (Height/pixelSize) &&
+	return 	pos.x >= 0 && pos.x < GridWidth &&
+			pos.y >= 0 && pos.y < GridHeight &&
 			!ContainsPos(c.outlines, pos) &&
 			!ContainsPos(c.sand, pos) &&
 			!ContainsPos(c.water, pos)
@@ -58,7 +58,7 @@ func processWater(c *Canvas) {
 		if canGoRight {
 			canDropRight = waterCanMoveTo(c, Pos{ x: right.x, y: right.y + 1 })
 			if !canDropRight {
-				for i := right.x; i < Width/pixelSize; i++ {
+				for i := right.x; i < GridWidth; i++ {
 					if !waterCanMoveTo(c, Pos{ x: i, y: right.y }) {
 						// Right is blocked
 						break

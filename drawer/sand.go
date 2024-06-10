@@ -5,8 +5,8 @@ import (
 )
 
 func sandCanMoveTo(c *Canvas, pos Pos) bool {
-	return 	pos.x >= 0 && pos.x < (Width/pixelSize) &&
-			pos.y >= 0 && pos.y < (Height/pixelSize) &&
+	return 	pos.x >= 0 && pos.x < GridWidth &&
+			pos.y >= 0 && pos.y < GridHeight &&
 			!ContainsPos(c.outlines, pos) &&
 			!ContainsPos(c.sand, pos)
 }

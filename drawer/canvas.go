@@ -6,14 +6,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var (
-	Width int 	= 600
-	Height int 	= 400
-	sandMaxStack int 	= 2
-)
-
 const (
 	pixelSize = 4 // enlarge pixels for 16-bit feel
+)
+
+var (
+	Width 		int = 600
+	Height 		int = 400
+	GridWidth 	int = Width / pixelSize
+	GridHeight 	int = Height / pixelSize
+	sandMaxStack int = 2
 )
 
 type Canvas struct {
@@ -26,7 +28,6 @@ type Canvas struct {
 func New() (*Canvas, error) {
 	c := &Canvas{
 		input: NewInput(),
-		outlines: []Pos{},
 	}
 	return c, nil
 }
