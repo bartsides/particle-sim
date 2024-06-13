@@ -7,11 +7,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-/*
-TODO: Dynamically change canvas size on window resize?
-
-*/
-
 func main() {
 	canvas, err := particle.New()
 	if err != nil {
