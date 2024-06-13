@@ -27,7 +27,7 @@ func (spewer *spewer) update(c *Canvas) {
 			c.water = append(c.water, Pos{ 
 				x: spewer.pos.x, 
 				y: spewer.pos.y, 
-				color: getRandomColor(waterColors),
+				color: getWaterColor(),
 			})
 		}
 	case spewerSandType:
@@ -35,7 +35,7 @@ func (spewer *spewer) update(c *Canvas) {
 			c.sand = append(c.sand, Pos{
 				x: spewer.pos.x,
 				y: spewer.pos.y,
-				color: getRandomColor(sandColors),
+				color: getSandColor(),
 			})
 		}
 	}

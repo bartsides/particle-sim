@@ -13,7 +13,7 @@ const (
 
 type inputMode int
 const (
-	inputModeOutline inputMode = iota
+	inputModeWall inputMode = iota
 	inputModeSand
 	inputModeWater
 	inputModeWaterSpewer
@@ -63,14 +63,14 @@ func (i *input) Update() {
 	}
 	
 	if ebiten.IsKeyPressed(ebiten.Key1) {
-		i.mode = inputModeOutline
+		i.mode = inputModeWall
 	} else if ebiten.IsKeyPressed(ebiten.Key2) {
 		i.mode = inputModeSand
 	} else if ebiten.IsKeyPressed(ebiten.Key3) {
 		i.mode = inputModeWater
 	} else if ebiten.IsKeyPressed(ebiten.Key4) {
-		i.mode = inputModeWaterSpewer
-	} else if ebiten.IsKeyPressed(ebiten.Key5) {
 		i.mode = inputModeSandSpewer
+	} else if ebiten.IsKeyPressed(ebiten.Key5) {
+		i.mode = inputModeWaterSpewer
 	}
 }

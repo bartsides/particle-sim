@@ -5,9 +5,9 @@ import (
 )
 
 func sandCanMoveTo(c *Canvas, pos Pos) bool {
-	return 	pos.x >= 0 && pos.x < GridWidth &&
-			pos.y >= 0 && pos.y < GridHeight &&
-			!ContainsPos(c.outlines, pos) &&
+	return 	pos.x >= 0 && pos.x < gridWidth &&
+			pos.y >= 0 && pos.y < gridHeight &&
+			!ContainsPos(c.walls, pos) &&
 			!ContainsPos(c.sand, pos)
 }
 
@@ -16,8 +16,8 @@ func handleSandInput(c *Canvas) {
 	steps, start, stepX, stepY := getSteps(*c.input)
 	for step := 0; step < steps; step++ {
 		pos := getNextStep(step, start, stepX, stepY)
-		if !ContainsPos(c.outlines, pos) && !ContainsPos(c.sand, pos) {
-			c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: getRandomColor(sandColors) })
+		if !ContainsPos(c.walls, pos) && !ContainsPos(c.sand, pos) {
+			c.sand = append(c.sand, Pos{ x: pos.x, y: pos.y, color: getSandColor() })
 		}
 	}
 }
@@ -26,7 +26,7 @@ func processSand(c *Canvas) {
 	removal := []Pos{}
 	for i, sand := range c.sand {
 		down := Pos{ x: sand.x, y: sand.y + 1 }
-		if c.mode == canvasBottomless && down.y >= GridHeight {
+		if c.mode == canvasBottomless && down.y >= gridHeight {
 			removal = append(removal, sand)
 			continue
 		}

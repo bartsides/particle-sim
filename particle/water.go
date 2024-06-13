@@ -5,9 +5,9 @@ import (
 )
 
 func waterCanMoveTo(c *Canvas, pos Pos) bool {
-	return 	pos.x >= 0 && pos.x < GridWidth &&
-			pos.y >= 0 && pos.y < GridHeight &&
-			!ContainsPos(c.outlines, pos) &&
+	return 	pos.x >= 0 && pos.x < gridWidth &&
+			pos.y >= 0 && pos.y < gridHeight &&
+			!ContainsPos(c.walls, pos) &&
 			!ContainsPos(c.sand, pos) &&
 			!ContainsPos(c.water, pos)
 }
@@ -17,8 +17,8 @@ func handleWaterInput(c *Canvas) {
 	steps, start, stepX, stepY := getSteps(*c.input)
 	for step := 0; step < steps; step++ {
 		pos := getNextStep(step, start, stepX, stepY)
-		if !ContainsPos(c.outlines, pos) && !ContainsPos(c.water, pos) {
-			c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: getRandomColor(waterColors) })
+		if !ContainsPos(c.walls, pos) && !ContainsPos(c.water, pos) {
+			c.water = append(c.water, Pos{ x: pos.x, y: pos.y, color: getWaterColor() })
 		}
 	}
 }
@@ -26,14 +26,14 @@ func handleWaterInput(c *Canvas) {
 func processWater(c *Canvas) {
 	removal := []Pos{}
 	for i, water := range c.water {
-		if ContainsPos(c.sand, water) || ContainsPos(c.outlines, water) {
-			// Sand or outline has displaced water
+		if ContainsPos(c.sand, water) || ContainsPos(c.walls, water) {
+			// Sand or wall has displaced water
 			c.water[i].y = max(0, water.y - 1)
 			continue
 		}
 
 		down := Pos{ x: water.x, y: water.y + 1 }
-		if c.mode == canvasBottomless && down.y >= GridHeight {
+		if c.mode == canvasBottomless && down.y >= gridHeight {
 			removal = append(removal, water)
 			continue
 		}
@@ -79,7 +79,7 @@ func processWater(c *Canvas) {
 		if canGoRight {
 			canDropRight = waterCanMoveTo(c, Pos{ x: right.x, y: right.y + 1 })
 			if !canDropRight {
-				for j := right.x; j < GridWidth; j++ {
+				for j := right.x; j < gridWidth; j++ {
 					if !waterCanMoveTo(c, Pos{ x: j, y: right.y }) {
 						// Right is blocked
 						break

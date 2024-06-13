@@ -1,6 +1,7 @@
 package particle
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -8,14 +9,17 @@ import (
 
 const (
 	pixelSize = 4 // enlarge pixels for 16-bit feel
+	debugMenuBox = false
 )
 
 var (
-	Width 		int = 600
-	Height 		int = 400
-	GridWidth 	int = Width / pixelSize
-	GridHeight 	int = Height / pixelSize
-	sandMaxStack int = 2
+	Width 		 	int = 600
+	Height 		 	int = 800
+	menuSize	 	int = 80
+	gridWidth 	 	int = Width / pixelSize
+	gridHeight 	 	int = Height / pixelSize
+	pixeledMenuSize int = menuSize / pixelSize
+	sandMaxStack 	int = 2
 )
 
 type canvasMode int
@@ -27,7 +31,7 @@ const (
 type Canvas struct {
 	input		*input
 	mode		canvasMode
-	outlines	[]Pos // TODO: Convert outlines to use hash?
+	walls		[]Pos // TODO: Convert walls to use hash?
 	sand		[]Pos
 	water		[]Pos
 	spewers		[]spewer
@@ -38,6 +42,9 @@ func New() (*Canvas, error) {
 		input: NewInput(),
 		mode: canvasBottomless,
 	}
+	if debugMenuBox {
+		addDebugMenuBox(c)
+	}
 	return c, nil
 }
 
@@ -46,25 +53,45 @@ func (c *Canvas) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHei
 }
 
 func (c *Canvas) Draw(screen *ebiten.Image) {
+	if debugMenuBox {
+	fmt.Println("----------REDRAW----------")
+	}
 	screen.Fill(backgroundColor)
 	for _, water := range c.water {
+		if debugMenuBox {
+			printMenuDebug(water, "getWaterColor()")
+		}
 		drawPixel(screen, water)
 	}
 	for _, sand := range c.sand {
+		if debugMenuBox {
+			printMenuDebug(sand, "getSandColor()")
+		}
 		drawPixel(screen, sand)
 	}
-	for _, outline := range c.outlines {
-		drawPixel(screen, outline)
+	for _, wall := range c.walls {
+		if debugMenuBox {
+			printMenuDebug(wall, "getWallColor()")
+		}
+		drawPixel(screen, wall)
 	}
 	for _, spewer := range c.spewers {
 		spewer.draw(screen)
 	}
+	drawMenu(screen)
 }
 
 func drawPixel(screen *ebiten.Image, element Pos) {
 	sqr := generateSquare(ToPos(element.x), ToPos(element.y), pixelSize)
 	for _, pos := range sqr {
 		screen.Set(pos.x, pos.y, element.color)
+	}
+}
+
+func drawPixelOffset(screen *ebiten.Image, element Pos, offset int) {
+	sqr := generateSquare(ToPos(element.x), ToPos(element.y), pixelSize)
+	for _, pos := range sqr {
+		screen.Set(pos.x + offset, pos.y, element.color)
 	}
 }
 
@@ -78,9 +105,19 @@ func (c *Canvas) Update() error {
 func processInputs(c *Canvas) {
 	c.input.Update()
 	if c.input.mouseState == mouseStateLeftClick {
+		handleLeftClick(c)
+	} else if c.input.mouseState == mouseStateRightClick {
+		handleRightClick(c)
+	}
+}
+
+func handleLeftClick(c *Canvas) {
+	if (c.input.mousePosY <= menuSize) {
+		handleMenuClick(c.input)
+	} else {
 		switch c.input.mode {
-		case inputModeOutline:
-			handleOutlineInput(c)
+		case inputModeWall:
+			handleWallInput(c)
 		case inputModeSand:
 			handleSandInput(c)
 		case inputModeWater:
@@ -90,10 +127,12 @@ func processInputs(c *Canvas) {
 		case inputModeSandSpewer:
 			handleSpewerInput(c, spewerSandType)
 		}
-	} else if c.input.mouseState == mouseStateRightClick {
-		handleRemoveOutline(c)
-		handleRemoveSpewer(c)
 	}
+}
+
+func handleRightClick(c *Canvas) {
+	handleRemoveWall(c)
+	handleRemoveSpewer(c)
 }
 
 func getNextStep(step int, start Pos, stepX, stepY float64) Pos {
