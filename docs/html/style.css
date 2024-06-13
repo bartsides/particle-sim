@@ -38,7 +38,6 @@ a:visited {
 
 #canvas-container {
     display: inline-block;
-    border: solid white 2px;
     min-width: 0px;
     max-width: 90%;
     overflow: auto;
