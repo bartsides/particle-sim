@@ -6,13 +6,13 @@ func handleWallInput(c *Canvas) {
 	steps, start, stepX, stepY := getSteps(*c.input)
 	for step := 0; step < steps; step++ {
 		pos := getNextStep(step, start, stepX, stepY)
-		if !ContainsPos(c.walls, pos) {
-			c.walls = append(c.walls, Pos{x: pos.x, y: pos.y, color: wallColor})
+		if !containsPos(c.walls, pos) {
+			c.walls = append(c.walls, position{x: pos.x, y: pos.y, color: wallColor})
 		}
 	}
 }
 
 func handleRemoveWall(c *Canvas) {
-	pos := Pos{x: c.input.mouseGridPosX, y: c.input.mouseGridPosY}
-	c.walls = RemovePos(c.walls, pos)
+	pos := position{x: c.input.mouseGridPosX, y: c.input.mouseGridPosY}
+	c.walls = removePos(c.walls, pos)
 }

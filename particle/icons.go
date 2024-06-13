@@ -1,6 +1,6 @@
 package particle
 
-var wallIconPoints []Pos = []Pos{
+var wallIconPoints []position = []position{
 	{x: 3, y: 4, color: getWallColor()},
 	{x: 4, y: 4, color: getWallColor()},
 	{x: 5, y: 4, color: getWallColor()},
@@ -27,7 +27,7 @@ var wallIconPoints []Pos = []Pos{
 	{x: 16, y: 14, color: getWallColor()},
 }
 
-var sandIconPoints []Pos = []Pos{
+var sandIconPoints []position = []position{
 	{x: 10, y: 5, color: getSandColor()},
 	{x: 10, y: 6, color: getSandColor()},
 	{x: 10, y: 18, color: getSandColor()},
@@ -107,7 +107,7 @@ var sandIconPoints []Pos = []Pos{
 	{x: 5, y: 16, color: getSandColor()},
 }
 
-var waterIconPoints []Pos = []Pos{
+var waterIconPoints []position = []position{
 	{x: 10, y: 5, color: getWaterColor()},
 	{x: 10, y: 6, color: getWaterColor()},
 	{x: 10, y: 7, color: getWaterColor()},

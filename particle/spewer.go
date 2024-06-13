@@ -10,12 +10,12 @@ const (
 )
 
 type spewer struct {
-	pos        Pos
+	pos        position
 	spewerType spewerType
 }
 
 func (spewer *spewer) draw(screen *ebiten.Image) {
-	sqr := generateSquare(ToPos(spewer.pos.x), ToPos(spewer.pos.y), pixelSize*4)
+	sqr := generateSquare(gridToPosition(spewer.pos.x), gridToPosition(spewer.pos.y), pixelSize*4)
 	for _, pos := range sqr {
 		screen.Set(pos.x, pos.y, spewer.pos.color)
 	}
@@ -25,7 +25,7 @@ func (spewer *spewer) update(c *Canvas) {
 	switch spewer.spewerType {
 	case spewerWaterType:
 		if waterCanMoveTo(c, spewer.pos) {
-			c.water = append(c.water, Pos{
+			c.water = append(c.water, position{
 				x:     spewer.pos.x,
 				y:     spewer.pos.y,
 				color: getWaterColor(),
@@ -33,7 +33,7 @@ func (spewer *spewer) update(c *Canvas) {
 		}
 	case spewerSandType:
 		if sandCanMoveTo(c, spewer.pos) {
-			c.sand = append(c.sand, Pos{
+			c.sand = append(c.sand, position{
 				x:     spewer.pos.x,
 				y:     spewer.pos.y,
 				color: getSandColor(),
@@ -44,7 +44,7 @@ func (spewer *spewer) update(c *Canvas) {
 
 func handleSpewerInput(c *Canvas, spewerType spewerType) {
 	spewer := spewer{
-		pos:        Pos{x: c.input.mouseGridPosX, y: c.input.mouseGridPosY, color: spewerColor},
+		pos:        position{x: c.input.mouseGridPosX, y: c.input.mouseGridPosY, color: spewerColor},
 		spewerType: spewerType,
 	}
 	if !containsSpewer(c.spewers, spewer) {

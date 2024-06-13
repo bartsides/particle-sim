@@ -32,9 +32,9 @@ const (
 type Canvas struct {
 	input   *input
 	mode    canvasMode
-	walls   []Pos // TODO: Convert walls to use hash?
-	sand    []Pos
-	water   []Pos
+	walls   []position
+	sand    []position
+	water   []position
 	spewers []spewer
 }
 
@@ -82,25 +82,25 @@ func (c *Canvas) Draw(screen *ebiten.Image) {
 	drawMenu(screen)
 }
 
-func drawPixel(screen *ebiten.Image, element Pos) {
-	sqr := generateSquare(ToPos(element.x), ToPos(element.y), pixelSize)
-	for _, pos := range sqr {
-		screen.Set(pos.x, pos.y, element.color)
-	}
-}
-
-func drawPixelOffset(screen *ebiten.Image, element Pos, offset int) {
-	sqr := generateSquare(ToPos(element.x), ToPos(element.y), pixelSize)
-	for _, pos := range sqr {
-		screen.Set(pos.x+offset, pos.y, element.color)
-	}
-}
-
 func (c *Canvas) Update() error {
 	processInputs(c)
 	processParticles(c)
 	processSpewers(c)
 	return nil
+}
+
+func drawPixel(screen *ebiten.Image, element position) {
+	sqr := generateSquare(gridToPosition(element.x), gridToPosition(element.y), pixelSize)
+	for _, pos := range sqr {
+		screen.Set(pos.x, pos.y, element.color)
+	}
+}
+
+func drawPixelOffset(screen *ebiten.Image, element position, offset int) {
+	sqr := generateSquare(gridToPosition(element.x), gridToPosition(element.y), pixelSize)
+	for _, pos := range sqr {
+		screen.Set(pos.x+offset, pos.y, element.color)
+	}
 }
 
 func processInputs(c *Canvas) {
@@ -136,15 +136,15 @@ func handleRightClick(c *Canvas) {
 	handleRemoveSpewer(c)
 }
 
-func getNextStep(step int, start Pos, stepX, stepY float64) Pos {
-	return Pos{
+func getNextStep(step int, start position, stepX, stepY float64) position {
+	return position{
 		x: int(math.Round(float64(start.x) + float64(step)*stepX)),
 		y: int(math.Round(float64(start.y) + float64(step)*stepY)),
 	}
 }
 
-func getSteps(input input) (steps int, start Pos, stepX, stepY float64) {
-	start = Pos{
+func getSteps(input input) (steps int, start position, stepX, stepY float64) {
+	start = position{
 		x: input.mousePrevGridPosX,
 		y: input.mousePrevGridPosY,
 	}

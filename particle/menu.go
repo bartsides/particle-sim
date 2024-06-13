@@ -90,15 +90,15 @@ func drawButtonOutline(screen *ebiten.Image, offset int, color color.RGBA) {
 func addDebugMenuBox(c *Canvas) {
 	for i := 0; i < pixeledMenuSize; i++ {
 		c.walls = append(c.walls,
-			Pos{x: i, y: pixeledMenuSize, color: getWallColor()},                       // Top
-			Pos{x: i, y: pixeledMenuSize * 2, color: getWallColor()},                   // Bottom
-			Pos{x: 0, y: pixeledMenuSize + i, color: getWallColor()},                   // Left
-			Pos{x: pixeledMenuSize - 1, y: pixeledMenuSize + i, color: getWallColor()}, // Right
+			position{x: i, y: pixeledMenuSize, color: getWallColor()},                       // Top
+			position{x: i, y: pixeledMenuSize * 2, color: getWallColor()},                   // Bottom
+			position{x: 0, y: pixeledMenuSize + i, color: getWallColor()},                   // Left
+			position{x: pixeledMenuSize - 1, y: pixeledMenuSize + i, color: getWallColor()}, // Right
 		)
 	}
 }
 
-func printMenuDebug(pos Pos, color string) {
+func printMenuDebug(pos position, color string) {
 	if pos.x > 0 && pos.x < pixeledMenuSize-1 && pos.y > pixeledMenuSize && pos.y < pixeledMenuSize*2 {
 		fmt.Println("{x:", pos.x, ", y:", pos.y-pixeledMenuSize-1, ", color: ", color, "},")
 	}

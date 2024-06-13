@@ -4,13 +4,13 @@ import (
 	"image/color"
 )
 
-type Pos struct {
+type position struct {
 	x     int
 	y     int
 	color color.Color
 }
 
-func ContainsPos(values []Pos, pos Pos) bool {
+func containsPos(values []position, pos position) bool {
 	for _, val := range values {
 		if val.x == pos.x && val.y == pos.y {
 			return true
@@ -19,7 +19,7 @@ func ContainsPos(values []Pos, pos Pos) bool {
 	return false
 }
 
-func RemovePos(values []Pos, pos Pos) []Pos {
+func removePos(values []position, pos position) []position {
 	for i, val := range values {
 		if val.x == pos.x && val.y == pos.y {
 			return append(values[:i], values[i+1:]...)
@@ -28,29 +28,21 @@ func RemovePos(values []Pos, pos Pos) []Pos {
 	return values
 }
 
-func ToGrid(pos int) int {
-	return pos / pixelSize
-}
-
-func ToGrid64(pos float64) float64 {
-	return pos / float64(pixelSize)
-}
-
-func ToPos(grid int) int {
+func gridToPosition(grid int) int {
 	return grid * pixelSize
 }
 
-func ToPos64(grid float64) float64 {
-	return grid * pixelSize
-}
+// func positionToGrid(pos int) int {
+// 	return pos / pixelSize
+// }
 
-func generateSquare(x, y, size int) []Pos {
+func generateSquare(x, y, size int) []position {
 	// x,y is top left of rect
-	res := make([]Pos, size*size)
+	res := make([]position, size*size)
 	i := 0
 	for x1 := 0; x1 < size; x1++ {
 		for y1 := 0; y1 < size; y1++ {
-			res[i] = Pos{x: x1 + x, y: y1 + y}
+			res[i] = position{x: x1 + x, y: y1 + y}
 			i++
 		}
 	}

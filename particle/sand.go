@@ -4,11 +4,11 @@ import (
 	"math/rand"
 )
 
-func sandCanMoveTo(c *Canvas, pos Pos) bool {
+func sandCanMoveTo(c *Canvas, pos position) bool {
 	return pos.x >= 0 && pos.x < gridWidth &&
 		pos.y >= 0 && pos.y < gridHeight &&
-		!ContainsPos(c.walls, pos) &&
-		!ContainsPos(c.sand, pos)
+		!containsPos(c.walls, pos) &&
+		!containsPos(c.sand, pos)
 }
 
 func handleSandInput(c *Canvas) {
@@ -16,16 +16,16 @@ func handleSandInput(c *Canvas) {
 	steps, start, stepX, stepY := getSteps(*c.input)
 	for step := 0; step < steps; step++ {
 		pos := getNextStep(step, start, stepX, stepY)
-		if !ContainsPos(c.walls, pos) && !ContainsPos(c.sand, pos) {
-			c.sand = append(c.sand, Pos{x: pos.x, y: pos.y, color: getSandColor()})
+		if !containsPos(c.walls, pos) && !containsPos(c.sand, pos) {
+			c.sand = append(c.sand, position{x: pos.x, y: pos.y, color: getSandColor()})
 		}
 	}
 }
 
 func processSand(c *Canvas) {
-	removal := []Pos{}
+	removal := []position{}
 	for i, sand := range c.sand {
-		down := Pos{x: sand.x, y: sand.y + 1}
+		down := position{x: sand.x, y: sand.y + 1}
 		if c.mode == canvasBottomless && down.y >= gridHeight {
 			removal = append(removal, sand)
 			continue
@@ -37,8 +37,8 @@ func processSand(c *Canvas) {
 		}
 
 		// Sand can only stack sandMaxStack tall. If taller, topple to a random or only available side.
-		left := Pos{x: sand.x - 1, y: sand.y}
-		right := Pos{x: sand.x + 1, y: sand.y}
+		left := position{x: sand.x - 1, y: sand.y}
+		right := position{x: sand.x + 1, y: sand.y}
 		canGoLeft := sandCanMoveTo(c, left)
 		canGoRight := sandCanMoveTo(c, right)
 		if !canGoLeft && !canGoRight {
@@ -48,7 +48,7 @@ func processSand(c *Canvas) {
 		// Check if stacked higher than max stack
 		stackedToMax := false
 		for j := 1; j <= sandMaxStack; j++ {
-			stackedToMax = ContainsPos(c.sand, Pos{x: sand.x, y: sand.y + j})
+			stackedToMax = containsPos(c.sand, position{x: sand.x, y: sand.y + j})
 			if !stackedToMax {
 				break
 			}
@@ -59,7 +59,7 @@ func processSand(c *Canvas) {
 
 		if canGoLeft {
 			for j := 1; j <= sandMaxStack; j++ {
-				canGoLeft = sandCanMoveTo(c, Pos{x: left.x, y: left.y + j})
+				canGoLeft = sandCanMoveTo(c, position{x: left.x, y: left.y + j})
 				if !canGoLeft {
 					break
 				}
@@ -68,7 +68,7 @@ func processSand(c *Canvas) {
 
 		if canGoRight {
 			for j := 1; j <= sandMaxStack; j++ {
-				canGoRight = sandCanMoveTo(c, Pos{x: right.x, y: right.y + j})
+				canGoRight = sandCanMoveTo(c, position{x: right.x, y: right.y + j})
 				if !canGoRight {
 					break
 				}
@@ -96,6 +96,6 @@ func processSand(c *Canvas) {
 	}
 
 	for _, sand := range removal {
-		c.sand = RemovePos(c.sand, sand)
+		c.sand = removePos(c.sand, sand)
 	}
 }
