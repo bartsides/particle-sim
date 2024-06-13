@@ -5,6 +5,7 @@ import (
 )
 
 type mouseState int
+
 const (
 	mouseStateNone mouseState = iota
 	mouseStateLeftClick
@@ -12,6 +13,7 @@ const (
 )
 
 type inputMode int
+
 const (
 	inputModeWall inputMode = iota
 	inputModeSand
@@ -22,16 +24,16 @@ const (
 
 // input represents the current key states.
 type input struct {
-	mouseState			mouseState
-	mousePosX			int
-	mousePosY			int
-	mouseGridPosX		int
-	mouseGridPosY		int
-	mousePrevPosX 		int
-	mousePrevPosY 		int
-	mousePrevGridPosX 	int
-	mousePrevGridPosY 	int
-	mode				inputMode
+	mouseState        mouseState
+	mousePosX         int
+	mousePosY         int
+	mouseGridPosX     int
+	mouseGridPosY     int
+	mousePrevPosX     int
+	mousePrevPosY     int
+	mousePrevGridPosX int
+	mousePrevGridPosY int
+	mode              inputMode
 }
 
 // NewInput generates a new Input object.
@@ -53,7 +55,7 @@ func (i *input) Update() {
 	i.mousePosY = y
 	i.mouseGridPosX = x / pixelSize
 	i.mouseGridPosY = y / pixelSize
-	
+
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
 		i.mouseState = mouseStateRightClick
 	} else if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
@@ -61,7 +63,7 @@ func (i *input) Update() {
 	} else {
 		i.mouseState = mouseStateNone
 	}
-	
+
 	if ebiten.IsKeyPressed(ebiten.Key1) {
 		i.mode = inputModeWall
 	} else if ebiten.IsKeyPressed(ebiten.Key2) {

@@ -5,9 +5,9 @@ import (
 )
 
 type Pos struct {
-	x 		int
-	y 		int
-	color 	color.Color
+	x     int
+	y     int
+	color color.Color
 }
 
 func ContainsPos(values []Pos, pos Pos) bool {
